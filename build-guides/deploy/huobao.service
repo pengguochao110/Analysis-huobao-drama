@@ -1,0 +1,89 @@
+# Huobao Drama AI 短剧生成平台 - systemd 服务配置文件
+# 
+# 安装说明:
+# 1. 将此文件复制到 /etc/systemd/system/huobao.service
+# 2. 根据实际部署路径修改 WorkingDirectory 和 ExecStart
+# 3. 根据需要修改 User 和 Group
+# 4. 重新加载 systemd: sudo systemctl daemon-reload
+# 5. 启动服务: sudo systemctl start huobao
+# 6. 设置开机自启: sudo systemctl enable huobao
+
+[Unit]
+# 服务描述信息
+Description=Huobao Drama AI Short Video Generation Platform
+# 服务文档链接（可选）
+Documentation=https://github.com/your-org/huobao-drama
+
+# 依赖关系：确保网络服务启动后再启动本服务
+After=network.target
+# 如果使用外部数据库，添加数据库服务依赖
+# After=network.target postgresql.service mysql.service
+
+# 如果网络服务失败，本服务也应该失败
+Wants=network.target
+
+[Service]
+# 服务类型：simple 表示 ExecStart 启动的进程是主进程
+Type=simple
+
+# 运行服务的用户和组
+# 建议创建专用用户以提高安全性: sudo useradd -r -s /bin/false huobao
+User=huobao
+Group=huobao
+
+# 工作目录：应用程序的根目录
+# 修改为实际部署路径
+WorkingDirectory=/opt/huobao
+
+# 启动命令：可执行文件的完整路径
+# 修改为实际的可执行文件路径
+ExecStart=/opt/huobao/huobao-server
+
+# 环境变量文件：存储敏感配置（如 API 密钥）
+# 创建文件: /opt/huobao/.env
+# 格式: KEY=VALUE (每行一个)
+EnvironmentFile=-/opt/huobao/.env
+
+# 也可以直接在这里设置环境变量
+# Environment="GO_ENV=production"
+# Environment="GIN_MODE=release"
+
+# 重启策略：服务失败时自动重启
+Restart=on-failure
+# 重启延迟时间（秒）
+RestartSec=5s
+# 最大重启次数限制（在 StartLimitIntervalSec 时间内）
+StartLimitBurst=3
+# 重启计数的时间窗口（秒）
+StartLimitIntervalSec=60s
+
+# 进程终止超时时间
+TimeoutStopSec=30s
+
+# 标准输出和错误输出重定向到 systemd journal
+StandardOutput=journal
+StandardError=journal
+
+# 系统日志标识符
+SyslogIdentifier=huobao-drama
+
+# 安全加固选项（可选，根据需要启用）
+# 禁止访问 /home, /root 等目录
+# ProtectHome=yes
+# 只读系统目录
+# ProtectSystem=strict
+# 私有临时目录
+# PrivateTmp=yes
+# 禁止提升权限
+# NoNewPrivileges=yes
+
+# 资源限制（可选）
+# 最大打开文件数
+# LimitNOFILE=65536
+# 最大进程数
+# LimitNPROC=4096
+
+[Install]
+# 安装目标：多用户模式下启动（相当于运行级别 3）
+# 这使得服务在系统启动时自动运行
+WantedBy=multi-user.target

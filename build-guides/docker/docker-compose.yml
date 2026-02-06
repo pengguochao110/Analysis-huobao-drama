@@ -1,0 +1,149 @@
+version: '3.8'
+
+# ============================================
+# Huobao Drama AI 短剧生成平台 Docker Compose 配置
+# ============================================
+
+services:
+  # ============================================
+  # 主应用服务
+  # ============================================
+  huobao:
+    # 服务名称
+    container_name: huobao-drama
+    
+    # 构建配置
+    build:
+      # 构建上下文：项目根目录（需要将此文件复制到项目根目录使用）
+      context: .
+      # Dockerfile 路径（如果使用 build-guides 中的 Dockerfile，需要调整路径）
+      dockerfile: Dockerfile
+    
+    # 镜像名称和标签
+    image: huobao-drama:latest
+    
+    # 端口映射
+    # 格式：宿主机端口:容器端口
+    ports:
+      - "8080:8080"  # 应用主端口
+    
+    # 卷挂载 - 数据持久化
+    volumes:
+      # 数据库文件持久化
+      - ./data:/app/data
+      # 上传文件持久化
+      - ./uploads:/app/uploads
+      # 临时文件目录
+      - ./temp:/app/temp
+      # 配置文件挂载（可选，如果需要外部配置）
+      # - ./config.yaml:/app/config.yaml:ro
+    
+    # 环境变量配置
+    environment:
+      # 应用运行模式：development 或 production
+      - APP_MODE=production
+      
+      # 数据库配置
+      - DB_PATH=/app/data/huobao.db
+      
+      # AI 服务配置（敏感信息，建议使用 .env 文件）
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_ENDPOINT=${AI_ENDPOINT:-https://api.openai.com/v1}
+      
+      # 图像生成服务配置
+      - IMAGE_API_KEY=${IMAGE_API_KEY}
+      - IMAGE_ENDPOINT=${IMAGE_ENDPOINT}
+      
+      # 视频生成服务配置
+      - VIDEO_API_KEY=${VIDEO_API_KEY}
+      - VIDEO_ENDPOINT=${VIDEO_ENDPOINT}
+      
+      # FFmpeg 路径
+      - FFMPEG_PATH=/usr/bin/ffmpeg
+      
+      # 时区设置
+      - TZ=Asia/Shanghai
+    
+    # 环境变量文件（推荐方式）
+    # 创建 .env 文件存储敏感信息，不要提交到版本控制
+    env_file:
+      - .env
+    
+    # 网络配置
+    # 如果需要访问宿主机服务（如 Ollama），使用以下配置之一：
+    
+    # 方式 1：使用 host 网络模式（Linux）
+    # network_mode: "host"
+    
+    # 方式 2：使用 extra_hosts（跨平台）
+    extra_hosts:
+      # 允许容器通过 host.docker.internal 访问宿主机
+      - "host.docker.internal:host-gateway"
+      # 如果宿主机运行 Ollama，可以这样配置 AI_ENDPOINT：
+      # AI_ENDPOINT=http://host.docker.internal:11434
+    
+    # 重启策略
+    # unless-stopped: 除非手动停止，否则总是重启
+    restart: unless-stopped
+    
+    # 资源限制（可选，防止资源耗尽）
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'      # 最多使用 2 个 CPU 核心
+          memory: 4G       # 最多使用 4GB 内存
+        reservations:
+          cpus: '0.5'      # 至少保留 0.5 个 CPU 核心
+          memory: 512M     # 至少保留 512MB 内存
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    
+    # 依赖服务（如果有其他服务，如 Redis、PostgreSQL 等）
+    # depends_on:
+    #   - redis
+    #   - postgres
+
+# ============================================
+# 网络配置（可选）
+# ============================================
+# networks:
+#   huobao-network:
+#     driver: bridge
+
+# ============================================
+# 卷配置（可选，使用命名卷）
+# ============================================
+# volumes:
+#   huobao-data:
+#     driver: local
+#   huobao-uploads:
+#     driver: local
+
+# ============================================
+# 使用说明
+# ============================================
+# 1. 创建 .env 文件并配置环境变量：
+#    AI_API_KEY=your_api_key_here
+#    AI_ENDPOINT=https://api.openai.com/v1
+#
+# 2. 启动服务：
+#    docker-compose up -d
+#
+# 3. 查看日志：
+#    docker-compose logs -f huobao
+#
+# 4. 停止服务：
+#    docker-compose down
+#
+# 5. 重启服务：
+#    docker-compose restart huobao
+#
+# 6. 更新服务：
+#    docker-compose pull
+#    docker-compose up -d

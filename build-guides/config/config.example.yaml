@@ -1,0 +1,216 @@
+# Huobao Drama AI 短剧生成平台 - 配置文件示例
+# 使用说明：将此文件复制到项目根目录并重命名为 config.yaml，然后根据实际环境修改配置项
+
+# ============================================================================
+# 数据库配置
+# ============================================================================
+database:
+  # SQLite 数据库文件路径
+  # 开发环境建议使用相对路径，生产环境建议使用绝对路径
+  # 确保目录存在且应用有读写权限
+  path: ./data/huobao.db
+  
+  # 数据库连接池配置（可选）
+  # max_idle_conns: 10        # 最大空闲连接数
+  # max_open_conns: 100       # 最大打开连接数
+  # conn_max_lifetime: 3600   # 连接最大生命周期（秒）
+
+# ============================================================================
+# 文件存储配置
+# ============================================================================
+storage:
+  # 上传文件存储目录
+  # 用于存储用户上传的剧本、音频、图片等文件
+  upload_dir: ./uploads
+  
+  # 临时文件目录
+  # 用于存储视频生成过程中的临时文件
+  temp_dir: ./temp
+  
+  # 最大上传文件大小（MB，可选）
+  # max_upload_size: 100
+  
+  # 文件清理策略（可选）
+  # temp_file_retention: 24   # 临时文件保留时间（小时）
+
+# ============================================================================
+# AI 服务配置
+# ============================================================================
+ai:
+  # AI 服务提供商类型
+  # 支持: openai, gemini, ollama
+  provider: openai
+  
+  # API 密钥
+  # 建议使用环境变量: export AI_API_KEY="your-api-key"
+  # 然后在此处引用: ${AI_API_KEY}
+  api_key: ${AI_API_KEY}
+  
+  # API 服务端点 URL
+  # OpenAI: https://api.openai.com/v1
+  # Gemini: https://generativelanguage.googleapis.com/v1
+  # Ollama (本地): http://localhost:11434/v1
+  endpoint: https://api.openai.com/v1
+  
+  # 使用的模型名称
+  model: gpt-4
+  
+  # API 请求超时时间（秒）
+  timeout: 60
+  
+  # 最大重试次数
+  max_retries: 3
+
+# ============================================================================
+# 图片生成服务配置
+# ============================================================================
+image:
+  # 图片生成服务提供商
+  # 支持: openai, gemini, volcengine
+  provider: openai
+  
+  # API 密钥（如果与 AI 服务不同）
+  api_key: ${IMAGE_API_KEY}
+  
+  # API 服务端点
+  endpoint: https://api.openai.com/v1
+  
+  # 默认图片尺寸
+  default_size: 1024x1024
+  
+  # 默认图片质量
+  # 可选值: standard, hd
+  default_quality: standard
+
+# ============================================================================
+# 视频生成服务配置
+# ============================================================================
+video:
+  # 视频生成服务提供商
+  # 支持: minimax, chatfire, openai_sora, volces_ark
+  provider: minimax
+  
+  # API 密钥
+  api_key: ${VIDEO_API_KEY}
+  
+  # API 服务端点
+  endpoint: https://api.minimax.chat/v1
+  
+  # 默认视频分辨率
+  default_resolution: 1280x720
+  
+  # 默认视频时长（秒）
+  default_duration: 5
+
+# ============================================================================
+# FFmpeg 配置
+# ============================================================================
+ffmpeg:
+  # FFmpeg 可执行文件路径
+  # Windows: C:/ffmpeg/bin/ffmpeg.exe
+  # macOS (Homebrew): /opt/homebrew/bin/ffmpeg
+  # Linux: /usr/bin/ffmpeg
+  # Docker: /usr/local/bin/ffmpeg
+  path: /usr/bin/ffmpeg
+  
+  # FFprobe 可执行文件路径（用于获取媒体信息）
+  ffprobe_path: /usr/bin/ffprobe
+  
+  # 视频编码参数（可选）
+  # video_codec: libx264      # 视频编码器
+  # audio_codec: aac          # 音频编码器
+  # video_bitrate: 2000k      # 视频比特率
+  # audio_bitrate: 128k       # 音频比特率
+
+# ============================================================================
+# 服务器配置
+# ============================================================================
+server:
+  # HTTP 服务监听端口
+  port: 8080
+  
+  # 服务监听地址
+  # 0.0.0.0 - 监听所有网络接口（生产环境）
+  # 127.0.0.1 - 仅监听本地（开发环境）
+  host: 0.0.0.0
+  
+  # 运行模式
+  # development - 开发模式（详细日志、热重载）
+  # production - 生产模式（优化性能、错误处理）
+  mode: development
+  
+  # 跨域配置（CORS）
+  cors:
+    enabled: true
+    allowed_origins:
+      - http://localhost:5173    # 前端开发服务器
+      - http://localhost:3000
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed_headers:
+      - Content-Type
+      - Authorization
+  
+  # 请求限流配置（可选）
+  # rate_limit:
+  #   enabled: true
+  #   requests_per_minute: 60
+
+# ============================================================================
+# 日志配置
+# ============================================================================
+logging:
+  # 日志级别
+  # debug, info, warn, error
+  level: info
+  
+  # 日志输出格式
+  # json - JSON 格式（便于日志收集）
+  # text - 文本格式（便于阅读）
+  format: text
+  
+  # 日志输出位置
+  # stdout - 标准输出
+  # file - 文件
+  output: stdout
+  
+  # 日志文件路径（当 output 为 file 时）
+  # file_path: ./logs/app.log
+  
+  # 日志文件轮转配置（可选）
+  # max_size: 100              # 单个日志文件最大大小（MB）
+  # max_backups: 10            # 保留的旧日志文件数量
+  # max_age: 30                # 日志文件保留天数
+
+# ============================================================================
+# 任务调度配置（可选）
+# ============================================================================
+scheduler:
+  # 是否启用任务调度器
+  enabled: true
+  
+  # 资源转移任务执行间隔（秒）
+  resource_transfer_interval: 300
+  
+  # 临时文件清理任务执行间隔（秒）
+  temp_cleanup_interval: 3600
+
+# ============================================================================
+# 性能优化配置（可选）
+# ============================================================================
+performance:
+  # 是否启用缓存
+  cache_enabled: true
+  
+  # 缓存过期时间（秒）
+  cache_ttl: 3600
+  
+  # 并发处理数量
+  max_concurrent_tasks: 5
+  
+  # 数据库查询超时（秒）
+  db_query_timeout: 30
